@@ -14,7 +14,7 @@ var navtargets = {
         { path: '/poll', label: "Participate in a Poll", templateUrl: 'partials/participate.html' },
     ],
     rightbar : [
-        { path: '/mypolls', label: "My Polls", templateUrl: 'partials/mypolls.html' },
+        // { path: '/mypolls', label: "My Polls", templateUrl: 'partials/mypolls.html' },
     ],
     invisible : [
         { path: '/login', label: "Login", templateUrl: 'partials/login.html' },
@@ -22,9 +22,17 @@ var navtargets = {
 };
 
 angular.module('StrawPollApp', [ 
-    'ngRoute',   // so that $routeProvider can be injected
-    'firebase'
+    'ngRoute',    // so that $routeProvider can be injected
+    'firebase',
+    'googlechart' // https://github.com/angular-google-chart/angular-google-chart
 ])
+.value('googleChartApiConfig', {
+    version: '1',
+    optionalSettings: {
+        packages: ['corechart', 'gauge'],
+        language: 'en'
+    }
+})
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     // $locationProvider.html5Mode({ enable: true, requireBase: false });
 
@@ -54,23 +62,34 @@ angular.module('StrawPollApp', [
                 $location.path("/home");
             }, 1000);
         }
-    }])
-.controller('LoginController', 
-    ['$scope', '$firebaseAuth', '$location', function (scope, fbAuth, $location) {
-        var auth = fbAuth(firebase);
 
-        function authenticate(authData, userName) {
+        scope.authenticate = function (authData) {
             console.log("Authenticated successfully with payload:");
             console.dir(authData);
+
             scope.user.auth = authData;
-            scope.user.name = userName;
+            if ('google' in authData)
+                scope.user.name = authData.google.displayName;
+            else
+                scope.user.name = "Anonymous";
             $location.path("/home");
         }
+
+        // check if user is still authenticated
+        var auth = fbAuth(firebase);
+        var authData = auth.$getAuth();
+        if (authData)
+            scope.authenticate(authData);
+
+    }])
+.controller('LoginController',
+    ['$scope', '$firebaseAuth', '$location', function (scope, fbAuth, $location) {
+        var auth = fbAuth(firebase);
 
         // to support login 
         scope.authAnonymously = function () {
             auth.$authAnonymously().then(function(authData) {
-                authenticate(authData, "Anonymous");
+                scope.authenticate(authData);
             }).catch(function (error) {
                 console.log("Login Failed!", error);
             });
@@ -79,7 +98,7 @@ angular.module('StrawPollApp', [
         scope.authViaGoogle = function () {
             auth.$authWithOAuthPopup("google").then(function (authData) {
                 /* authData.google = {displayName: "Godmar Back", id: ..., profileImageURL: "") } */
-                authenticate(authData, authData.google.displayName);
+                scope.authenticate(authData);
             }).catch(function (error) {
                 console.log("Login Failed!", error);
             });
@@ -124,9 +143,11 @@ angular.module('StrawPollApp', [
         }
     }])
 .controller('ParticipateController',
-    ['$scope', '$firebaseArray', '$firebaseObject', function (scope, 
+    ['$scope', '$firebaseArray', '$firebaseObject',
+        'googleChartApiPromise', function (scope,
                     $firebaseArray, 
-                    $firebaseObject) {
+                    $firebaseObject,
+                    googleChartAPIPromise) {
 
         scope.polls = $firebaseArray(new Firebase(appBaseUrl + "/polls"));
         scope.current = { poll : null };
@@ -138,7 +159,62 @@ angular.module('StrawPollApp', [
 
             var myVote = $firebaseObject(new Firebase(myVoteURL));
             myVote.$bindTo(scope, "myvote");
+
+            // add a column for each option
+            var rows = [ ];
+            var option2Row = { }
+            poll.options.forEach(function (e) {
+                var row = { c : [ { v: e.label }, { v : 0 }  ] };
+                option2Row[e.label] = row.c[1];
+                rows.push(row);
+            });
+
+            var chartObj = {
+                data : {
+                    cols : [
+                        {id: "t", label: "Option", type: "string"},
+                        {id: "s", label: "Votes", type: "number"}
+                    ],
+                    rows: rows
+                },
+                type: "BarChart",
+                options: {
+                    legend: { position: 'none' },
+                    animation: {
+                        "startup": true,
+                        "duration" : 1000,
+                        "easing": "in"
+                    }
+                }
+            }
+
+            var allVoteURL = appBaseUrl + "/votes/" + poll.$id;
+            var allVotes = $firebaseArray(new Firebase(allVoteURL));
+            function countTheVotes() {
+                for (var k in option2Row)
+                    option2Row[k].v = 0;
+
+                allVotes.forEach(function (vote) {
+                    option2Row[vote.voted].v++;
+                });
+            }
+
+            allVotes.$loaded().then(function () {
+                scope.current.results = chartObj;
+            });
+
+            allVotes.$watch(function (event, key) {
+                // recount votes on each change
+                // console.log("allvotes watch fired: " + event);
+                countTheVotes();
+            });
         }
+
+        // if we need access to the google API object
+        var google;
+        googleChartAPIPromise.then(function (g) {
+            google = g;
+        });
     }])
 ;
 
