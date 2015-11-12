@@ -15,8 +15,19 @@ var navtargets = {
 };
 
 angular.module('StrawPollApp', [ 
-    /* no dependencies yet */
+    'ngRoute'   // so that $routeProvider can be injected
 ])
+.config(['$routeProvider', function($routeProvider) {
+    // wire links to partials in ng-view
+    for (var menuname in navtargets) {
+        var menugroup = navtargets[menuname];
+        for (var i = 0; i < menugroup.length; i++) {
+            var item = menugroup[i];
+            $routeProvider.when(item.path, { templateUrl: item.templateUrl });
+        }
+    }
+    $routeProvider.otherwise({redirectTo: '/'});
+}])
 .controller('NavController', 
     ['$scope', function (scope) {
         scope.navtargets = navtargets;
