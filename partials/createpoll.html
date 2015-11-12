@@ -6,7 +6,11 @@
 <div class="row" ng-controller="CreatePollController">
     <div class="col-sm-12">
         <div class="well bs-component col-sm-11">
-          <p>Currently, we support only polls with a single question.</p>
+          <div class="form-group">
+              This poll will be created by 
+              <span class="text-info">{{ user.name }}</span>
+              (uid: {{ user.auth.uid }})
+          </div>
           <form role="form" class="form-horizontal">
             <div class="form-group">
                 <div class="col-sm-11">

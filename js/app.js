@@ -2,7 +2,8 @@
 
 (function () {
 
-var firebase = new Firebase("https://strawpoll-1127.firebaseio.com");
+var appBaseUrl = "https://strawpoll-1127.firebaseio.com";
+var firebase = new Firebase(appBaseUrl);
 
 var navtargets = {
     always : [
@@ -58,13 +59,18 @@ angular.module('StrawPollApp', [
     ['$scope', '$firebaseAuth', '$location', function (scope, fbAuth, $location) {
         var auth = fbAuth(firebase);
 
+        function authenticate(authData, userName) {
+            console.log("Authenticated successfully with payload:");
+            console.dir(authData);
+            scope.user.auth = authData;
+            scope.user.name = userName;
+            $location.path("/home");
+        }
+
         // to support login 
         scope.authAnonymously = function () {
             auth.$authAnonymously().then(function(authData) {
-                console.log("Authenticated successfully with payload:");
-                console.dir(authData);
-                scope.user.auth = authData;
-                scope.user.name = "Anonymous";
+                authenticate(authData, "Anonymous");
             }).catch(function (error) {
                 console.log("Login Failed!", error);
             });
@@ -72,11 +78,8 @@ angular.module('StrawPollApp', [
 
         scope.authViaGoogle = function () {
             auth.$authWithOAuthPopup("google").then(function (authData) {
-                console.log("Authenticated successfully with payload:");
-                console.dir(authData);
-                scope.user.auth = authData;
-                scope.user.name = authData.google.displayName;
                 /* authData.google = {displayName: "Godmar Back", id: ..., profileImageURL: "") } */
+                authenticate(authData, authData.google.displayName);
             }).catch(function (error) {
                 console.log("Login Failed!", error);
             });
@@ -87,7 +90,7 @@ angular.module('StrawPollApp', [
         scope.navtargets = navtargets;
     }])
 .controller('CreatePollController',
-    ['$scope', function (scope) {
+    ['$scope', '$firebaseArray', function (scope, $firebaseArray) {
         scope.question = {
             text: "What is your favorite JavaScript MVC Framework?",
             options: [ ]
@@ -110,8 +113,31 @@ angular.module('StrawPollApp', [
                 }
             }
         }
+
         scope.saveQuestion = function () {
-            alert("Save not implemented");
+            var polls = $firebaseArray(new Firebase(appBaseUrl + "/polls"));
+            polls.$add(scope.question).then(function (ref) {
+                var id = ref.key();
+                console.log("added new poll with id: " + id);
+                // TBD: store id under user to be able to later find it
+            });
+        }
+    }])
+.controller('ParticipateController',
+    ['$scope', '$firebaseArray', '$firebaseObject', function (scope, 
+                    $firebaseArray, 
+                    $firebaseObject) {
+
+        scope.polls = $firebaseArray(new Firebase(appBaseUrl + "/polls"));
+        scope.current = { poll : null };
+
+        scope.selectPoll = function (poll) {
+            this.current.poll = poll;
+            var myVoteURL = appBaseUrl + "/votes/" + poll.$id + "/" + scope.user.auth.uid;
+            console.log("my vote is stored at: " + myVoteURL);
+
+            var myVote = $firebaseObject(new Firebase(myVoteURL));
+            myVote.$bindTo(scope, "myvote");
         }
     }])
 ;
