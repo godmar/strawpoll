@@ -1,0 +1,15 @@
+<div class="row" ng-controller="LoginController">
+    <div class="col-sm-6">
+        <h2>Authenticate</h2>
+        <p>
+        To create or participate in polls, you must authenticate first.
+        We have three options supported via Firebase: 
+            using your Google account, using Email, and anonymously.
+        </p>
+    </div>
+    <div class="col-sm-6">
+        <button ng-click="authAnonymously()" class="btn btn-default">Be Anonymous</button>
+        <button ng-click="authViaGoogle()" class="btn btn-default">Use Google</button>
+    </div>
+</div>
+

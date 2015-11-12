@@ -1,29 +1,37 @@
 <div class="row">
-    <div class="col-lg-3">
+    <div class="col-sm-6">
         <h2>Create a Poll</h2>
     </div>
 </div>
 <div class="row" ng-controller="CreatePollController">
-    <div class="col-lg-12">
-        <div class="well bs-component col-lg-9">
-            <p>Currently, we support only polls with a single question.</p>
+    <div class="col-sm-12">
+        <div class="well bs-component col-sm-11">
+          <p>Currently, we support only polls with a single question.</p>
+          <form role="form" class="form-horizontal">
             <div class="form-group">
-                <label class="control-label col-lg-2">Enter your question:</label>
-                <div class="col-lg-10">
+                <div class="col-sm-11">
+                    <label class="control-label">Enter your question:</label>
                     <textarea class="form-control" rows="3" ng-model="question.text"></textarea>
                 </div>
             </div>
-            <div ng-repeat="option in question.options" class="form-group">
-                <div class="col-lg-10">
-                    <label class="control-label col-lg-2">{{option.label}}</label>
-                    <input type="text" ng-model="option.text" />
-                    <button>
-                        <i ng-click="removeOption(option.label)" class="glyphicon glyphicon-remove-sign"></i>
-                    </button>
+            <p class="col-sm-11"> &nbsp; </p>
+            <div ng-repeat="option in question.options">
+                <div class="col-sm-9 form-group">
+                    <label class="control-label col-sm-1">{{option.label}}</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" ng-model="option.text" />
+                    </div>
+                    <div class="col-sm-1 control-label">
+                        <i ng-click="removeOption(option.label)" 
+                            class="vertical-align glyphicon-large glyphicon glyphicon-remove-sign"></i>
+                    </div>
                 </div>
             </div>
-            <button class="btn btn-primary" ng-click="addOption()">Add Answer Option</button>
-            <button class="btn btn-warning" ng-click="saveQuestion()">Save Question</button>
+            <div class="col-sm-9 pull-right">
+                <button class="btn btn-primary" ng-click="addOption()">Add Answer Option</button>
+                <button class="btn btn-warning" ng-click="saveQuestion()">Save Question</button>
+            </div>
+          </form>
         </div>
     </div>
 </div>

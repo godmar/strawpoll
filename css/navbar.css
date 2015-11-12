@@ -6,3 +6,14 @@ body {
 .navbar {
   margin-bottom: 20px;
 }
+
+/* http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3/25517025#25517025 */
+.vertical-align {
+    display: flex;
+    align-items: center;
+}
+
+.glyphicon-large {
+    font-size: large;
+}
+

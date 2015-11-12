@@ -2,22 +2,31 @@
 
 (function () {
 
+var firebase = new Firebase("https://strawpoll-1127.firebaseio.com");
+
 var navtargets = {
+    always : [
+        { path: '/home', label: "Home", templateUrl: 'partials/home.html' },
+    ],
     topbar : [
-        { path: '/', label: "Home", templateUrl: 'partials/home.html' },
         { path: '/createpoll', label: "Create a Poll", templateUrl: 'partials/createpoll.html' },
         { path: '/poll', label: "Participate in a Poll", templateUrl: 'partials/participate.html' },
     ],
     rightbar : [
         { path: '/mypolls', label: "My Polls", templateUrl: 'partials/mypolls.html' },
-        { path: '/login', label: "Login", templateUrl: 'partials/login.html' },
     ],
+    invisible : [
+        { path: '/login', label: "Login", templateUrl: 'partials/login.html' },
+    ]
 };
 
 angular.module('StrawPollApp', [ 
-    'ngRoute'   // so that $routeProvider can be injected
+    'ngRoute',   // so that $routeProvider can be injected
+    'firebase'
 ])
-.config(['$routeProvider', function($routeProvider) {
+.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
+    // $locationProvider.html5Mode({ enable: true, requireBase: false });
+
     // wire links to partials in ng-view
     for (var menuname in navtargets) {
         var menugroup = navtargets[menuname];
@@ -28,6 +37,51 @@ angular.module('StrawPollApp', [
     }
     $routeProvider.otherwise({redirectTo: '/'});
 }])
+.controller('MainController', 
+    ['$scope', '$firebaseAuth', '$location', '$timeout', function (scope, fbAuth, $location, $timeout) {
+        // to hold auth information
+        scope.user = { }
+
+        scope.logout = function () {
+            delete scope.user['auth'];
+            fbAuth(firebase).$unauth();
+
+            /* Ah, the joys of AngularJS.  Calling $location.path() here should work,
+             * but it does not.  We are inside an AngularJS digest cycle already.
+             */
+            $timeout(function () {
+                $location.path("/home");
+            }, 1000);
+        }
+    }])
+.controller('LoginController', 
+    ['$scope', '$firebaseAuth', '$location', function (scope, fbAuth, $location) {
+        var auth = fbAuth(firebase);
+
+        // to support login 
+        scope.authAnonymously = function () {
+            auth.$authAnonymously().then(function(authData) {
+                console.log("Authenticated successfully with payload:");
+                console.dir(authData);
+                scope.user.auth = authData;
+                scope.user.name = "Anonymous";
+            }).catch(function (error) {
+                console.log("Login Failed!", error);
+            });
+        }
+
+        scope.authViaGoogle = function () {
+            auth.$authWithOAuthPopup("google").then(function (authData) {
+                console.log("Authenticated successfully with payload:");
+                console.dir(authData);
+                scope.user.auth = authData;
+                scope.user.name = authData.google.displayName;
+                /* authData.google = {displayName: "Godmar Back", id: ..., profileImageURL: "") } */
+            }).catch(function (error) {
+                console.log("Login Failed!", error);
+            });
+        }
+    }])
 .controller('NavController', 
     ['$scope', function (scope) {
         scope.navtargets = navtargets;

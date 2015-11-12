@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="StrawPollApp" lang="en">
+<html ng-app="StrawPollApp" ng-controller="MainController" lang="en">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,6 +9,8 @@
     <meta name="author" content="Godmar Back">
 
     <title>Straw Poll App</title>
+
+    <script src="https://cdn.firebase.com/js/client/2.3.1/firebase.js"></script>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap-flatly.css" rel="stylesheet">
@@ -37,15 +39,30 @@
             <a class="navbar-brand" href="#">Straw Polls</a>
           </div>
           <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
+             <ul class="nav navbar-nav">
+              <li ng-repeat="item in navtargets.always" ng-class="{ active : location.path() == item.path }">
+                    <a href="#{{item.path}}">{{item.label}}</a>
+              </li>
+            </ul>
+            <ul class="nav navbar-nav" ng-if="user.auth">
               <li ng-repeat="item in navtargets.topbar" ng-class="{ active : location.path() == item.path }">
                     <a href="#{{item.path}}">{{item.label}}</a>
               </li>
             </ul>
-            <ul class="nav navbar-nav navbar-right">
-              <li ng-repeat="item in navtargets.rightbar" ng-class="{ active : location.path() == item.path }">
+
+            <ul ng-if="user.auth" class="nav navbar-nav">
+                <li ng-repeat="item in navtargets.rightbar" 
+                    ng-class="{ active : location.path() == item.path }">
                     <a href="#{{item.path}}">{{item.label}}</a>
-              </li>
+            </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li ng-hide="user.auth" ng-class="{ active : location.path() == '/login' }">
+                    <a href="#/login">Login</a>
+                </li>
+                <li ng-show="user.auth"> 
+                    <a href="#" ng-click="logout()">Logout</a>
+                </li>
             </ul>
           </div><!--/.nav-collapse -->
         </div><!--/.container-fluid -->
@@ -61,6 +78,7 @@
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-route.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-resource.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-sanitize.min.js"></script>
+    <script src="js/angularfire.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/app.js"></script>
   </body>
