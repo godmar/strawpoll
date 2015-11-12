@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html ng-app="StrawPollApp" lang="en">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -24,7 +24,7 @@
 
   <body>
       <!-- Static navbar -->
-      <nav class="navbar navbar-default navbar-fixed-top">
+      <nav ng-controller="NavController" class="navbar navbar-default navbar-fixed-top">
         <div class="container-fluid">
           <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" 
@@ -38,19 +38,20 @@
           </div>
           <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-              <li class="active"><a href="#">Create a Poll</a></li>
-              <li><a href="#">Participate in a Poll</a></li>
+              <li ng-repeat="item in navtargets.topbar" ng-class="{ active : location.path() == item.path }">
+                    <a href="#{{item.path}}">{{item.label}}</a>
+              </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
-              <li><a href="#">My Polls</a></li>
-              <li><a href="#">Login</a></li>
+              <li ng-repeat="item in navtargets.rightbar" ng-class="{ active : location.path() == item.path }">
+                    <a href="#{{item.path}}">{{item.label}}</a>
+              </li>
             </ul>
           </div><!--/.nav-collapse -->
         </div><!--/.container-fluid -->
       </nav>
 
     <div class="container">
-
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
         <h1>A Straw Poll System</h1>
@@ -70,7 +71,12 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-route.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-resource.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-sanitize.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/app.js"></script>
   </body>
 </html>
