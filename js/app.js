@@ -32,6 +32,34 @@ angular.module('StrawPollApp', [
     ['$scope', function (scope) {
         scope.navtargets = navtargets;
     }])
+.controller('CreatePollController',
+    ['$scope', function (scope) {
+        scope.question = {
+            text: "What is your favorite JavaScript MVC Framework?",
+            options: [ ]
+        }
+        scope.addOption = function () {
+            var options = this.question.options;
+            var lastLabel = options.length > 0 ? options[options.length-1].label : "@";
+            var newLabel = String.fromCharCode(lastLabel.charCodeAt(0) + 1);
+            this.question.options.push({
+                label: newLabel,
+                text: "Enter option here"
+            });
+        }
+        scope.removeOption = function (label) {
+            var options = this.question.options;
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].label == label) {
+                    options.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        scope.saveQuestion = function () {
+            alert("Save not implemented");
+        }
+    }])
 ;
 
 })();
